@@ -1,4 +1,6 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -42,37 +44,33 @@ public class OSProjectPhase1 {
         systemInterrupt = 3;
     }
 
-    // Load function for Phase 1
+    // Load function to load jobs into memory and process them
     public void load(String fileName) {
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
-
-            // we start initially at index 0 of the memory
             int memoryIndex = 0;
             boolean dataSection = false;
 
             while ((line = br.readLine()) != null) {
-                // If control card is found, handle it
                 if (line.startsWith("$AMJ")) {
-                    System.out.println("Starting a new job: " + line.substring(4));
+                    System.out.println("Starting new job: " + line.substring(4));
+                    memoryIndex = 0;
+                    clearMemory(); // Clear memory for each new job
                 } else if (line.startsWith("$DTA")) {
                     System.out.println("Control card $DTA found");
-                    dataSection = true; // Call mosStartExecution() at this point
-                    mosStartExecution();
+                    dataSection = true; // After this, we start reading data
+                    mosStartExecution(); // Start executing the program
                 } else if (line.startsWith("$END")) {
                     System.out.println("Job ended: " + line.substring(4));
                 } else if (!dataSection) {
-                    // Handle program card, store it in memory in blocks of 10 words
+                    // Store program card in memory
                     String[] programWords = parseProgramCard(line);
-
                     for (String word : programWords) {
                         if (memoryIndex >= 100) {
                             System.out.println("Memory overflow, aborting.");
-                            return; // If memory is full, abort the process
+                            return;
                         }
-                        // Storing word in memory (each word occupies a row in memory)
-                        storeInMemory(word, memoryIndex);
-                        memoryIndex++;
+                        storeInMemory(word, memoryIndex++);
                     }
                 }
             }
@@ -89,13 +87,11 @@ public class OSProjectPhase1 {
         int numWords = (length + 3) / 4; // Each word is 4 bytes
 
         String[] words = new String[numWords];
-
         for (int i = 0; i < numWords; i++) {
             int start = i * 4;
-            int end = Math.min(start + 4, length); // Handle the last word which might be less than 4 bytes
+            int end = Math.min(start + 4, length);
             words[i] = line.substring(start, end);
         }
-
         return words;
     }
 
@@ -105,8 +101,15 @@ public class OSProjectPhase1 {
             if (i < word.length()) {
                 memory[index][i] = String.valueOf(word.charAt(i));
             } else {
-                memory[index][i] = " "; // Padding with spaces if word is less than 4 bytes
+                memory[index][i] = " ";
             }
+        }
+    }
+
+    // Clear memory after each job
+    private void clearMemory() {
+        for (int i = 0; i < 100; i++) {
+            Arrays.fill(memory[i], "    ");
         }
     }
 
@@ -114,9 +117,6 @@ public class OSProjectPhase1 {
     private void printMemory() {
         System.out.println("Memory content:");
         for (int i = 0; i < 100; i++) {
-            // if (Arrays.equals(memory[i], new String[]{" ", " ", " ", " "})) {
-            // continue; // Skip empty memory slots
-            // }
             System.out.print("M[" + i + "]: ");
             for (int j = 0; j < 4; j++) {
                 System.out.print(memory[i][j]);
@@ -125,122 +125,87 @@ public class OSProjectPhase1 {
         }
     }
 
-    // MOS/Start Execution: Set Instruction Counter to 0 and call executeUserPrg()
+    // MOS/Start Execution
     public void mosStartExecution() {
-        // Set instruction counter to 00
         instructionCounter[0] = 0;
         instructionCounter[1] = 0;
-
-        // Call executeUserPrg to start program execution
         executeUserPrg();
     }
 
     // Execute the user program
     public void executeUserPrg() {
-        // Execution loop (Slave Mode)
         while (true) {
-            // Fetch instruction from memory based on the instruction counter
             fetchInstruction();
-
-            // Increment the instruction counter to point to the next instruction
             incrementInstructionCounter();
 
-            // Examine opcode (first 2 bytes of the instruction register)
             String opcode = "" + instructionRegister[0] + instructionRegister[1];
-
-            // Switch case to handle different instructions
             switch (opcode) {
-                case "LR": // Load Register
+                case "LR":
                     loadRegister();
                     break;
-                case "SR": // Store Register
+                case "SR":
                     storeRegister();
                     break;
-                case "CR": // Compare Register
+                case "CR":
                     compareRegister();
                     break;
-                case "BT": // Branch on True
+                case "BT":
                     branchOnTrue();
                     break;
-                case "GD": // Get Data (Input)
+                case "GD":
                     systemInterrupt = 1;
                     mos();
                     break;
-                case "PD": // Put Data (Output)
+                case "PD":
                     systemInterrupt = 2;
                     mos();
                     break;
-                case "H ": // Halt
+                case "H ":
                     systemInterrupt = 3;
                     mos();
-                    return; // End program
+                    return;
                 default:
                     System.out.println("Invalid opcode: " + opcode);
-                    return; // Abort execution on invalid opcode
+                    return;
             }
         }
     }
 
-    // Fetch instruction from memory and load into instruction register
-    // private void fetchInstruction() {
-    // int memoryIndex = instructionCounter[0] * 10 + instructionCounter[1]; //
-    // Convert instruction counter to memory
-    // // index
-    // instructionRegister = convertStringArrayToCharArray(memory[memoryIndex]);
-    // }
-
-    private void fetchInstruction() {
-        int memoryIndex = instructionCounter[0] * 10 + instructionCounter[1];
-        char[] instruction = new char[4];
-        for (int i = 0; i < 4; i++) {
-            instruction[i] = memory[memoryIndex][i].charAt(0); // Extract individual characters
-        }
-        instructionRegister = instruction;
-    }
-
-    // Increment the instruction counter
-    private void incrementInstructionCounter() {
-        instructionCounter[1]++;
-        if (instructionCounter[1] == 10) { // Move to the next row of memory
-            instructionCounter[0]++;
-            instructionCounter[1] = 0;
-        }
-    }
-
-    // Load register (LR: R <- M[IR[3,4]])
+    // instructions functions
+    // Load Register (LR: R <- M[IR[3,4]])
     private void loadRegister() {
-        int memoryAddress = getMemoryAddress();
-        aRegister = convertStringArrayToCharArray(memory[memoryAddress]);
+        int memoryAddress = getMemoryAddress(); // Get the memory address from IR[3,4]
+        aRegister = convertStringArrayToCharArray(memory[memoryAddress]); // Load data from memory into the A register
+        System.out.println("Loaded into A register from memory[" + memoryAddress + "]: " + Arrays.toString(aRegister));
     }
 
-    // Store register (SR: R -> M[IR[3,4]])
+    // Store Register (SR: R -> M[IR[3,4]])
     private void storeRegister() {
-        int memoryAddress = getMemoryAddress();
-        memory[memoryAddress] = convertCharArrayToStringArray(aRegister);
+        int memoryAddress = getMemoryAddress(); // Get the memory address from IR[3,4]
+        memory[memoryAddress] = convertCharArrayToStringArray(aRegister); // Store A register data into memory
+        System.out.println("Stored A register into memory[" + memoryAddress + "]: " + Arrays.toString(aRegister));
     }
 
-    // Compare register (CR: Compare R and M[IR[3,4]])
+    // Compare Register (CR: Compare R and M[IR[3,4]])
     private void compareRegister() {
-        int memoryAddress = getMemoryAddress();
-        toggleRegister = Arrays.equals(aRegister, convertStringArrayToCharArray(memory[memoryAddress]));
+        int memoryAddress = getMemoryAddress(); // Get the memory address from IR[3,4]
+        toggleRegister = Arrays.equals(aRegister, convertStringArrayToCharArray(memory[memoryAddress])); // Compare A register with memory
+        System.out.println("Compared A register with memory[" + memoryAddress + "], toggleRegister set to: " + toggleRegister);
     }
 
-    // Branch on true (BT: If C = T then IC <- IR[3,4])
+    // Branch on True (BT: If C = T then IC <- IR[3,4])
     private void branchOnTrue() {
-        if (toggleRegister) {
-            int memoryAddress = getMemoryAddress();
-            instructionCounter[0] = (short) (memoryAddress / 10);
+        if (toggleRegister) { // If the comparison was true (toggleRegister is set)
+            int memoryAddress = getMemoryAddress(); // Get the memory address from IR[3,4]
+            instructionCounter[0] = (short) (memoryAddress / 10); // Set IC to the new memory address
             instructionCounter[1] = (short) (memoryAddress % 10);
+            System.out.println("Branching to memory address: " + memoryAddress);
+        } else {
+            System.out.println("Branch not taken. Toggle register is false.");
         }
     }
 
-    // Helper to calculate memory address from IR[3,4] (3rd and 4th bytes of IR)
-    private int getMemoryAddress() {
-        int address = (instructionRegister[2] - '0') * 10 + (instructionRegister[3] - '0'); // Convert IR[3,4] to
-                                                                                            // integer address
-        return address;
-    }
-
+    // helper methods
     // Convert a String array (from memory) to a char array (for registers)
     private char[] convertStringArrayToCharArray(String[] strArray) {
         char[] charArray = new char[4];
@@ -259,42 +224,46 @@ public class OSProjectPhase1 {
         return strArray;
     }
 
+    // Fetch instruction from memory
+    private void fetchInstruction() {
+        int memoryIndex = instructionCounter[0] * 10 + instructionCounter[1];
+        char[] instruction = new char[4];
+        for (int i = 0; i < 4; i++) {
+            instruction[i] = memory[memoryIndex][i].charAt(0);
+        }
+        instructionRegister = instruction;
+    }
+
+    // Increment the instruction counter
+    private void incrementInstructionCounter() {
+        instructionCounter[1]++;
+        if (instructionCounter[1] == 10) {
+            instructionCounter[0]++;
+            instructionCounter[1] = 0;
+        }
+    }
+
     // MOS (handling interrupts)
     private void mos() {
         switch (systemInterrupt) {
             case 1:
-                // System Interrupt: Get Data (GD)
-                System.out.println("System Interrupt: Get Data (GD)");
                 read();
                 break;
             case 2:
-                // System Interrupt: Put Data (PD)
-                System.out.println("System Interrupt: Put Data (PD)");
-                // write();
+                write();
                 break;
             case 3:
-                // System Interrupt: Halt (H)
-                System.out.println("System Interrupt: Halt (H)");
-                // terminate();
+                terminate();
                 break;
             default:
                 System.out.println("Unknown interrupt.");
-                break;
         }
     }
 
-    private void terminate() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'terminate'");
-    }
-
-    private void write() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'write'");
-    }
-
+    // Read function
+    // Read function for MOS
     private void read() {
-        instructionRegister[3] = '0'; // IR[4] <- 0 to handle proper block reading
+        instructionRegister[3] = '0'; // IR[4] <- 0
 
         // Calculate the starting memory address from IR[3,4]
         int memoryStartIndex = getMemoryAddress();
@@ -312,7 +281,7 @@ public class OSProjectPhase1 {
                 }
 
                 if (dataSection) {
-                    // If $END is reached, abort reading data
+                    // If $END is reached, stop reading data
                     if (line.startsWith("$END")) {
                         System.out.println("Out-of-data: Reached $END");
                         return;
@@ -339,15 +308,41 @@ public class OSProjectPhase1 {
         executeUserPrg();
     }
 
+    // Write function to write data in blocks of 10 words to output file
+    private void write() {
+        instructionRegister[3] = '0';
+        int memoryStartIndex = getMemoryAddress();
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("output.txt", true))) {
+            for (int i = 0; i < 10 && memoryStartIndex + i < 100; i++) {
+                for (int j = 0; j < 4; j++) {
+                    bw.write(memory[memoryStartIndex + i][j]);
+                }
+                bw.write(" "); // Space between words
+            }
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Terminate function
+    private void terminate() {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("output.txt", true))) {
+            bw.newLine(); // Add two blank lines after job output
+            bw.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Get memory address from IR
+    private int getMemoryAddress() {
+        return (instructionRegister[2] - '0') * 10 + (instructionRegister[3] - '0');
+    }
+
     public static void main(String[] args) {
         OSProjectPhase1 os = new OSProjectPhase1();
         os.init();
         os.load("input.txt");
-
-        // debug statement to check the contents of some components of virtual machine
-        // System.out.println(Arrays.toString(instructionCounter));
-        System.out.println(Arrays.toString(aRegister));
-        // System.out.println(Arrays.toString(memory[35]));
     }
 }
-
