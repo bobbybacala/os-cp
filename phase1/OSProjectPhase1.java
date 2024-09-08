@@ -247,7 +247,7 @@ public class OSProjectPhase1 {
     // Main function to initialize and start the OS simulation
     public static void main(String[] args) {
         try {
-            input = new BufferedReader(new FileReader("input.txt"));
+            input = new BufferedReader(new FileReader("phase1/input.txt"));
             output = new FileWriter("output.txt");
             load(); // Load the jobs from input
             printMemory(); // Print memory contents after load
