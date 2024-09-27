@@ -1,4 +1,5 @@
 package phase1;
+
 import java.io.*;
 
 public class OSProjectPhase1 {
@@ -147,7 +148,9 @@ public class OSProjectPhase1 {
             System.out.println("Out of data.");
             return;
         }
-        int address = (instructionRegister[2] - '0') * 10 + (instructionRegister[3] - '0');
+        // TAKE ONLY THE SECOND LAST BIT AND MULTIPLY IT BY 10, SINCE GD, PD
+        // instructions work blockwise
+        int address = (instructionRegister[2] - '0') * 10;
         if (address >= 100) {
             System.out.println("Address out of bounds during read.");
             return;
@@ -167,7 +170,9 @@ public class OSProjectPhase1 {
 
     // Write memory contents to output file
     private static void write() throws IOException {
-        int address = (instructionRegister[2] - '0') * 10 + (instructionRegister[3] - '0');
+        // TAKE ONLY THE SECOND LAST BIT AND MULTIPLY IT BY 10, SINCE GD, PD
+        // instructions work blockwise
+        int address = (instructionRegister[2] - '0') * 10;
         if (address >= 100) {
             System.out.println("Address out of bounds during write.");
             return;
@@ -247,8 +252,10 @@ public class OSProjectPhase1 {
     // Main function to initialize and start the OS simulation
     public static void main(String[] args) {
         try {
-            input = new BufferedReader(new FileReader("phase1/input.txt"));
-            output = new FileWriter("output.txt");
+            input = new BufferedReader(new FileReader(
+                    "D:/Study/Codes/VS projects/Java Projects/Operating System/os-cp/phase1/input.txt"));
+            output = new FileWriter(
+                    "D:/Study/Codes/VS projects/Java Projects/Operating System/os-cp/phase1/output.txt");
             load(); // Load the jobs from input
             printMemory(); // Print memory contents after load
         } catch (IOException e) {
