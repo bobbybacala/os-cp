@@ -1,0 +1,85 @@
+*                                       
+*   *                                   
+*   *   *                               
+*   *                                   
+JOB ID   :  202
+ LINE LIMIT EXCEEDED
+IC       : 15
+IR       : PD60
+TTC      : 15
+LLC      : 4
+
+CAT CAN EAT RAT                         
+RAT                                     
+JOB ID   :  302
+ NO ERROR
+IC       : 10
+IR       : H   
+TTC      : 10
+LLC      : 2
+
+
+JOB ID   :  102
+ INVALID PAGE FAULT
+IC       : 2
+IR       : LR36
+TTC      : 2
+LLC      : 0
+
+ABCD                                    
+ABCD                                    
+JOB ID   :  401
+ TIME LIMIT EXCEEDED
+IC       : 10
+IR       : BT10
+TTC      : 9
+LLC      : 2
+
+
+JOB ID   : 1503
+ OPERAND ERROR
+IC       : 3
+IR       : SR7A
+TTC      : 3
+LLC      : 0
+
+
+JOB ID   : 1403
+ OPERATION CODE ERROR
+IC       : 8
+IR       : PA30
+TTC      : 8
+LLC      : 0
+
+
+JOB ID   : 1403
+ INVALID PAGE FAULT
+IC       : 0
+IR       :     
+TTC      : 0
+LLC      : 0
+
+SHE SELLS   SEA SHELLS ON               
+JOB ID   :  402
+ TIME LIMIT EXCEEDED
+IC       : 4
+IR       : SR40
+TTC      : 4
+LLC      : 1
+
+SHE SELLS   SEA SHELLS ON               
+JOB ID   :  403
+ TIME LIMIT EXCEEDED
+IC       : 4
+IR       : SR40
+TTC      : 4
+LLC      : 1
+
+SHE SELLS   SEA SHELLS ON               
+JOB ID   :  405
+ TIME LIMIT EXCEEDED
+IC       : 3
+IR       : LR30
+TTC      : 3
+LLC      : 1
+

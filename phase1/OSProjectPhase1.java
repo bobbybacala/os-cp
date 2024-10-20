@@ -148,6 +148,11 @@ public class OSProjectPhase1 {
             System.out.println("Out of data.");
             return;
         }
+        // if user enters GD43, PD56, it is illegal , hence we handle this on the kernel
+        // side by making the last bit 0
+        // Since GD, PD work Block wise
+        instructionRegister[3] = 0;
+        
         // TAKE ONLY THE SECOND LAST BIT AND MULTIPLY IT BY 10, SINCE GD, PD
         // instructions work blockwise
         int address = (instructionRegister[2] - '0') * 10;
@@ -172,7 +177,13 @@ public class OSProjectPhase1 {
     private static void write() throws IOException {
         // TAKE ONLY THE SECOND LAST BIT AND MULTIPLY IT BY 10, SINCE GD, PD
         // instructions work blockwise
+
+        // if user enters GD43, PD56, it is illegal , hence we handle this on the kernel
+        // side by making the last bit 0
+        // Since GD, PD work Block wise
+        instructionRegister[3] = 0;
         int address = (instructionRegister[2] - '0') * 10;
+
         if (address >= 100) {
             System.out.println("Address out of bounds during write.");
             return;
