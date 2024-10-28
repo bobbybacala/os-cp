@@ -63,6 +63,8 @@ public class OSProjectPhase2 {
     // other helper data structures
     // keeps a track on which page we are in the memory
     static int pageCount = 0;
+
+    // counts the instructions on the program card
     static int Program_card_counter;
     static int currentLine;
 
@@ -135,6 +137,7 @@ public class OSProjectPhase2 {
             }
         }
 
+        // add the random generated address to the array
         rndmGeneratedIndex++;
         rndmGenerated[rndmGeneratedIndex] = address;
 
@@ -727,7 +730,7 @@ public class OSProjectPhase2 {
                     // initialise the page table
                     for (int i = PTR; i < PTR + 10; i++) {
                         memory[i][0] = '0';
-                        memory[i][1] = '*';
+                        memory[i][1] = ' ';
                         memory[i][2] = '*';
                         memory[i][3] = '*';
                     }
@@ -801,7 +804,7 @@ public class OSProjectPhase2 {
         }
     }
 
-    // chaloa bhai program ko
+    // chalao bhai program ko
     public static void main(String[] args) {
         try {
             input = new BufferedReader(new FileReader("input_phase2.txt"));

@@ -264,7 +264,7 @@ public class OSProjectPhase1 {
     public static void main(String[] args) {
         try {
             input = new BufferedReader(new FileReader(
-                    "D:/Study/Codes/VS projects/Java Projects/Operating System/os-cp/phase1/input.txt"));
+                    "D:/Study/Codes/VS projects/Java Projects/Operating System/os-cp/phase1/input2.txt"));
             output = new FileWriter(
                     "D:/Study/Codes/VS projects/Java Projects/Operating System/os-cp/phase1/output.txt");
             load(); // Load the jobs from input
